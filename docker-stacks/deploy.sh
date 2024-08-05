@@ -33,6 +33,13 @@ deploy_service() {
             cd "$service"
             
             if [ "$service" = "nginx" ]; then
+                if [ ! -d /docker_data/nginx ]; then
+                    # Create necessary directories
+                    sudo mkdir -p /docker_data/nginx/
+                    echo "Created directory /docker_data/nginx/"
+                else
+                    echo "Directory /docker_data/nginx/ already exists, skipping creation."
+                fi
                 
                 # Copy nginx.conf if it doesn't exist
                 if [ ! -f /docker_data/nginx/nginx.conf ]; then
