@@ -55,7 +55,7 @@ services:
       - postgresql
       - redis
   worker:
-    container_name: authentik_server
+    container_name: authentik_worker
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.6.2}
     restart: unless-stopped
     command: worker
