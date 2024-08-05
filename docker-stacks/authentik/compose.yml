@@ -2,6 +2,7 @@
 
 services:
   postgresql:
+    container_name: authentik_db
     image: docker.io/library/postgres:16-alpine
     restart: unless-stopped
     healthcheck:
@@ -19,6 +20,7 @@ services:
     env_file:
       - .env
   redis:
+    container_name: authentik_redis
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
     restart: unless-stopped
@@ -31,6 +33,7 @@ services:
     volumes:
       - /docker_data/authentik/redis:/data
   server:
+    container_name: authentik_server
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.6.2}
     restart: unless-stopped
     command: server
@@ -52,6 +55,7 @@ services:
       - postgresql
       - redis
   worker:
+    container_name: authentik_server
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.6.2}
     restart: unless-stopped
     command: worker
