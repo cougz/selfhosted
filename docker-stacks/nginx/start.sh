@@ -36,10 +36,12 @@ echo "Starting nginx..."
 nginx -g 'daemon off;'
 echo "Starting nginx done!"
 
-# Generate dhparams
-echo "Generating dhparam.pem in 4096 length..."
-openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
-echo "Generating dhparam.pem done!"
+# Generate dhparams.pem if it doesn't exist
+if [ ! -f "/etc/nginx/ssl/dhparam.pem" ]; then
+    echo "Generating dhparam.pem in 4096 length..."
+    openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
+    echo "Generating dhparam.pem done!"
+fi
 
 # Complete
 echo "start.sh complete"
