@@ -41,6 +41,11 @@ deploy_service() {
                     sudo cp nginx.conf /docker_data/nginx/nginx.conf
                 fi
                 
+                # Copy ssl_params.conf if it doesn't exist
+                if [ ! -f /docker_data/nginx/ssl/ssl_params.conf ]; then
+                    sudo cp ssl_params.conf /docker_data/nginx/ssl/ssl_params.conf
+                fi
+
                 # Create .env file if it doesn't exist
                 if [ ! -f .env ]; then
                     echo "Enter Cloudflare API token:"

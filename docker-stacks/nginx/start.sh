@@ -15,8 +15,11 @@ set_default_ca () {
 
 # Function to issue/renew certificate
 issue_cert() {
-    /root/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN" --force
+    /root/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN" --ocsp-must-staple --keylength ec-384 --force
 }
+
+# Generate dhparams
+openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
 
 # Check if certificate exists
 if [ ! -f "/etc/nginx/ssl/$DOMAIN.crt" ] || [ ! -f "/etc/nginx/ssl/$DOMAIN.key" ]; then
