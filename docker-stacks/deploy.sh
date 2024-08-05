@@ -33,8 +33,6 @@ deploy_service() {
             cd "$service"
             
             if [ "$service" = "nginx" ]; then
-                # Create necessary directories
-                sudo mkdir -p /docker_data/nginx/ssl /docker_data/nginx/conf.d
                 
                 # Copy nginx.conf if it doesn't exist
                 if [ ! -f /docker_data/nginx/nginx.conf ]; then
