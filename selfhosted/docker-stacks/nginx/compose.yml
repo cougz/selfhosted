@@ -1,0 +1,15 @@
+version: '3'
+services:
+  nginx:
+    build: .
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/root/.acme.sh
+      - ./ssl:/etc/nginx/ssl
+    environment:
+      - DOMAIN=example.com
+      - EMAIL=your-email@example.com
+      - CF_Key=your_cloudflare_api_key
+      - CF_Email=your_cloudflare_email
