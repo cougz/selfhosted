@@ -18,9 +18,6 @@ issue_cert() {
     /root/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN" --ocsp-must-staple --keylength ec-384 --force
 }
 
-# Generate dhparams
-openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
-
 # Check if certificate exists
 if [ ! -f "/etc/nginx/ssl/$DOMAIN.crt" ] || [ ! -f "/etc/nginx/ssl/$DOMAIN.key" ]; then
     echo "Certificate not found. Issuing new certificate..."
@@ -33,6 +30,10 @@ else
     echo "Certificate exists. Checking for renewal..."
     /root/.acme.sh/acme.sh --cron
 fi
+
+# Generate dhparams
+echo "Generating dhparam.pem in 4096..."
+openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
 
 # Start NGINX
 nginx -g 'daemon off;'
