@@ -8,6 +8,11 @@ if [ ! -f "/root/.acme.sh/acme.sh" ]; then
     curl https://get.acme.sh | sh
 fi
 
+# Set acme.sh default CA to Let's Encrypt
+set_default_ca () {
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+}
+
 # Function to issue/renew certificate
 issue_cert() {
     /root/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN" --force
@@ -16,6 +21,7 @@ issue_cert() {
 # Check if certificate exists
 if [ ! -f "/etc/nginx/ssl/$DOMAIN.crt" ] || [ ! -f "/etc/nginx/ssl/$DOMAIN.key" ]; then
     echo "Certificate not found. Issuing new certificate..."
+    set_default_ca
     issue_cert
     /root/.acme.sh/acme.sh --install-cert -d "$DOMAIN" \
         --key-file /etc/nginx/ssl/$DOMAIN.key \

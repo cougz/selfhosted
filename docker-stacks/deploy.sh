@@ -46,7 +46,7 @@ deploy_service() {
                     echo "Enter Cloudflare API token:"
                     read -p "CF_Token: " cf_token
                     echo "CF_Token=$cf_token" > .env
-                    echo "Enter your domain:"
+                    echo "Enter your domain for acme.sh certificate creation:"
                     read -p "DOMAIN: " domain
                     echo "DOMAIN=$domain" >> .env
                 fi
