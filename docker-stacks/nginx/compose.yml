@@ -12,3 +12,4 @@ services:
       - /docker_data/nginx/nginx.conf:/etc/nginx/nginx.conf
     environment:
       - CF_Token=${CF_Token}
+      - DOMAIN=${DOMAIN}
