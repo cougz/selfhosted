@@ -16,10 +16,10 @@ install_docker() {
         echo "Docker is already installed."
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         echo "Docker Compose not found. Installing Docker Compose..."
-        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
+        sudo apt-get update
+        sudo apt-get install -y docker-compose-plugin
         echo "Docker Compose installed successfully."
     else
         echo "Docker Compose is already installed."
@@ -32,16 +32,21 @@ deploy_service() {
     echo "Deploying $service..."
     cd $service
     
-    # Check if Cloudflare credentials are set
-    if [ ! -f .env ]; then
-        echo "Cloudflare credentials not found. Please enter your Cloudflare API key and email:"
-        read -p "Cloudflare API Key: " cf_key
-        read -p "Cloudflare Email: " cf_email
-        echo "CF_Key=$cf_key" > .env
-        echo "CF_Email=$cf_email" >> .env
+    if [ "$service" = "nginx" ]; then
+        # Check if Cloudflare credentials are set for nginx
+        if [ ! -f .env ]; then
+            echo "Cloudflare credentials not found for nginx. Please enter your Cloudflare API key and email:"
+            read -p "Cloudflare API Key: " cf_key
+            read -p "Cloudflare Email: " cf_email
+            echo "CF_Key=$cf_key" > .env
+            echo "CF_Email=$cf_email" >> .env
+        fi
+        docker compose -f compose.yml --env-file .env up --build -d
+    else
+        # For other services, just run docker compose without .env file
+        docker compose -f compose.yml up --build -d
     fi
     
-    docker compose -f compose.yml --env-file .env up --build -d
     cd ..
 }
 
