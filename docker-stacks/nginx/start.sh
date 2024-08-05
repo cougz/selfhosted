@@ -31,11 +31,6 @@ else
     /root/.acme.sh/acme.sh --cron
 fi
 
-# Start NGINX
-echo "Starting nginx..."
-nginx -g 'daemon off;'
-echo "Starting nginx done!"
-
 # Generate dhparams.pem if it doesn't exist
 if [ ! -f "/etc/nginx/ssl/dhparam.pem" ]; then
     echo "Generating dhparam.pem in 4096 length..."
@@ -45,3 +40,7 @@ fi
 
 # Complete
 echo "start.sh complete"
+
+# Start NGINX
+echo "Starting nginx..."
+nginx -g 'daemon off;'
