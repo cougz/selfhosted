@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-RUN apk add --no-cache curl bash openssl
+RUN apk add --no-cache curl bash openssl nano
 
 # Install acme.sh
 RUN curl https://get.acme.sh | sh

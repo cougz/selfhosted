@@ -6,7 +6,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /docker_data/nginx/certs:/root/.acme.sh
+      - /docker_data/nginx/acme.sh:/root/.acme.sh
       - /docker_data/nginx/ssl:/etc/nginx/ssl
       - /docker_data/nginx/conf.d:/etc/nginx/conf.d
       - /docker_data/nginx/nginx.conf:/etc/nginx/nginx.conf
