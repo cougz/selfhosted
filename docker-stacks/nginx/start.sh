@@ -31,9 +31,15 @@ else
     /root/.acme.sh/acme.sh --cron
 fi
 
-# Generate dhparams
-echo "Generating dhparam.pem in 4096..."
-openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
-
 # Start NGINX
+echo "Starting nginx..."
 nginx -g 'daemon off;'
+echo "Starting nginx done!"
+
+# Generate dhparams
+echo "Generating dhparam.pem in 4096 length..."
+openssl dhparam -out /etc/nginx/ssl/dhparam.pem 4096
+echo "Generating dhparam.pem done!"
+
+# Complete
+echo "start.sh complete"
