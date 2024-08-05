@@ -1,10 +1,9 @@
 FROM nginx:alpine
 
-RUN apk add --no-cache curl bash openssl jq
+RUN apk add --no-cache curl bash openssl
 
-# Install acme.sh without specifying an email
+# Install acme.sh
 RUN curl https://get.acme.sh | sh
-RUN ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh

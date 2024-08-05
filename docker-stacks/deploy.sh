@@ -46,8 +46,11 @@ deploy_service() {
                     echo "Enter Cloudflare API token:"
                     read -p "CF_Token: " cf_token
                     echo "CF_Token=$cf_token" > .env
+                    echo "Enter your domain:"
+                    read -p "DOMAIN: " domain
+                    echo "DOMAIN=$domain" >> .env
                 fi
-            fi
+                fi
             
             echo "Running docker compose for $service"
             docker compose -f compose.yml up --build -d
