@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Function to install Docker and Docker Compose
 install_docker() {
     if ! command -v docker &> /dev/null || ! docker compose version &> /dev/null; then
-        echo "Docker or Docker Compose not found. Installing Docker and Docker Compose..."
+        echo "Installing Docker and Docker Compose..."
         apt update && \
         apt install sudo -y && \
         apt-get install -y ca-certificates curl && \
@@ -20,58 +19,72 @@ install_docker() {
     fi
 }
 
-# Function to deploy a specific service
 deploy_service() {
     local service=$1
-    echo "Deploying $service..."
-    cd $service
+    echo "Deploying service: $service"
+    echo "Current directory: $(pwd)"
+    ls -la
     
-if [ "$service" = "nginx" ]; then
-    if [ ! -f .env ]; then
-        echo "Cloudflare API token not found for nginx. Please enter your Cloudflare API token:"
-        read -p "Cloudflare API Token: " cf_token
-        echo "CF_Token=$cf_token" > .env
+    if [ -d "$service" ]; then
+        echo "Contents of $service directory:"
+        ls -la "$service"
+        
+        if [ -f "$service/compose.yml" ]; then
+            cd "$service"
+            
+            if [ "$service" = "nginx" ]; then
+                # Create necessary directories
+                sudo mkdir -p /docker_data/nginx/certs /docker_data/nginx/ssl /docker_data/nginx/conf.d
+                
+                # Copy nginx.conf if it doesn't exist
+                if [ ! -f /docker_data/nginx/nginx.conf ]; then
+                    sudo cp nginx.conf /docker_data/nginx/nginx.conf
+                fi
+                
+                # Create .env file if it doesn't exist
+                if [ ! -f .env ]; then
+                    echo "Enter Cloudflare API token:"
+                    read -p "CF_Token: " cf_token
+                    echo "CF_Token=$cf_token" > .env
+                fi
+            fi
+            
+            echo "Running docker compose for $service"
+            docker compose -f compose.yml up --build -d
+            cd ..
+        else
+            echo "compose.yml not found in $service directory"
+        fi
+    else
+        echo "Service directory $service not found"
     fi
-    docker compose -f compose.yml --env-file .env up --build -d
-else
-    docker compose -f compose.yml up --build -d
-fi
-    
-    cd ..
 }
 
-# Check if script is run as root
 if [ "$EUID" -ne 0 ]; then 
     echo "Please run as root or with sudo"
-    exit
+    exit 1
 fi
 
-# Install Docker and Docker Compose
 install_docker
 
-# Ensure the script can be run after adding the user to the docker group
-exec su -l $SUDO_USER <<EOF
-
-# Pull the latest changes
-cd $(pwd)
 git pull
 
-# Deploy specified services or all if none specified
+echo "Current directory: $(pwd)"
+ls -la
+
 if [ $# -eq 0 ]; then
+    echo "No service specified, deploying all"
     for dir in */; do
-        if [ -f "$dir/compose.yml" ]; then
+        if [ -f "${dir}compose.yml" ]; then
             deploy_service "${dir%/}"
+        else
+            echo "No compose.yml in ${dir}"
         fi
     done
 else
     for service in "$@"; do
-        if [ -d "$service" ] && [ -f "$service/compose.yml" ]; then
-            deploy_service "$service"
-        else
-            echo "Service $service not found or missing compose.yml"
-        fi
+        deploy_service "$service"
     done
 fi
 
 echo "Deployment completed!"
-EOF
