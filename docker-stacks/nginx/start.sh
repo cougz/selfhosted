@@ -31,8 +31,5 @@ else
     /root/.acme.sh/acme.sh --cron
 fi
 
-# Update nginx.conf to use the correct domain
-sed -i "s/example\.com/$DOMAIN/g" /etc/nginx/nginx.conf
-
 # Start NGINX
 nginx -g 'daemon off;'
