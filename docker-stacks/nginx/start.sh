@@ -1,40 +1,65 @@
 #!/bin/bash
 
-DOMAIN="${DOMAIN:-example.com}"
-EMAIL="${EMAIL:-your-email@example.com}"
-
-# Register account with Let's Encrypt using the provided email (this is idempotent)
-~/.acme.sh/acme.sh --register-account -m $EMAIL
-
-# Check if the certificate exists and is still valid
-if [ ! -f "/etc/nginx/ssl/$DOMAIN.crt" ] || ! openssl x509 -noout -checkend 2592000 -in "/etc/nginx/ssl/$DOMAIN.crt"; then
-    echo "Certificate doesn't exist or will expire within 30 days. Issuing/renewing..."
-    # Issue/renew wildcard certificate using Cloudflare DNS challenge
-    ~/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN" --force
-
-    # Install the certificate
-    ~/.acme.sh/acme.sh --install-cert -d "$DOMAIN" \
-        --key-file /etc/nginx/ssl/$DOMAIN.key \
-        --fullchain-file /etc/nginx/ssl/$DOMAIN.crt
-else
-    echo "Certificate is still valid. Skipping renewal."
+# Check if CF_Token is set
+if [ -z "$CF_Token" ]; then
+    echo "Error: CF_Token is not set. Please set your Cloudflare API token."
+    exit 1
 fi
 
-# Add HTTPS server block to NGINX config if it doesn't exist
-if ! grep -q "listen 443 ssl" /etc/nginx/nginx.conf; then
-    cat << EOF >> /etc/nginx/nginx.conf
-    server {
-        listen 443 ssl;
-        server_name $DOMAIN *.$DOMAIN;
+# Register account with Let's Encrypt (if not already registered)
+~/.acme.sh/acme.sh --register-account -m "admin@example.com"
 
-        ssl_certificate /etc/nginx/ssl/$DOMAIN.crt;
-        ssl_certificate_key /etc/nginx/ssl/$DOMAIN.key;
+# Function to issue/renew certificate
+# Function to issue/renew certificate
+issue_cert() {
+    local domain=$1
+    echo "Issuing/renewing certificate for $domain"
+    ~/.acme.sh/acme.sh --issue --dns dns_cf \
+        -d "$domain" -d "*.$domain" \
+        --keylength ec-384 \
+        --ocsp-must-staple \
+        --force
+    ~/.acme.sh/acme.sh --install-cert -d "$domain" \
+        --key-file /etc/nginx/ssl/$domain.key \
+        --fullchain-file /etc/nginx/ssl/$domain.crt \
+        --ecc
+}
 
-        location / {
-            root /usr/share/nginx/html;
-            index index.html;
-        }
+# Read domains from a file or environment variable
+# For now, we'll use a placeholder. In practice, you might want to pass this as a file or environment variable
+DOMAINS="example.com example2.com"
+
+for domain in $DOMAINS; do
+    if [ ! -f "/etc/nginx/ssl/$domain.crt" ] || ! openssl x509 -noout -checkend 2592000 -in "/etc/nginx/ssl/$domain.crt"; then
+        issue_cert $domain
+    else
+        echo "Certificate for $domain is still valid. Skipping renewal."
+    fi
+done
+
+# Ensure default nginx configuration exists
+if [ ! -f "/etc/nginx/conf.d/default.conf" ]; then
+    cat << EOF > /etc/nginx/conf.d/default.conf
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/nginx/ssl/default.crt;
+    ssl_certificate_key /etc/nginx/ssl/default.key;
+
+    # Other SSL parameters...
+
+    location / {
+        return 444;
     }
+}
 EOF
 fi
 

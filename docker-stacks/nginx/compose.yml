@@ -10,7 +10,4 @@ services:
       - /docker_data/nginx/conf.d:/etc/nginx/conf.d
       - /docker_data/nginx/nginx.conf:/etc/nginx/nginx.conf
     environment:
-      - DOMAIN=example.com
-      - EMAIL=your-email@example.com
-      - CF_Key=${CF_Key}
-      - CF_Email=${CF_Email}
+      - CF_Token=${CF_Token}

@@ -32,29 +32,16 @@ deploy_service() {
     echo "Deploying $service..."
     cd $service
     
-    if [ "$service" = "nginx" ]; then
-        # Copy initial nginx configuration files if the target directory is empty
-        if [ ! -f /docker_data/nginx/nginx.conf ]; then
-            sudo cp nginx.conf /docker_data/nginx/nginx.conf
-        fi
-        if [ ! -d /docker_data/nginx/conf.d ] || [ -z "$(ls -A /docker_data/nginx/conf.d)" ]; then
-            sudo mkdir -p /docker_data/nginx/conf.d
-            sudo cp -r conf.d/* /docker_data/nginx/conf.d/ 2>/dev/null || true
-        fi
-
-        # Check if Cloudflare credentials are set for nginx
-        if [ ! -f .env ]; then
-            echo "Cloudflare credentials not found for nginx. Please enter your Cloudflare API key and email:"
-            read -p "Cloudflare API Key: " cf_key
-            read -p "Cloudflare Email: " cf_email
-            echo "CF_Key=$cf_key" > .env
-            echo "CF_Email=$cf_email" >> .env
-        fi
-        docker compose -f compose.yml --env-file .env up --build -d
-    else
-        # For other services, just run docker compose
-        docker compose -f compose.yml up --build -d
+if [ "$service" = "nginx" ]; then
+    if [ ! -f .env ]; then
+        echo "Cloudflare API token not found for nginx. Please enter your Cloudflare API token:"
+        read -p "Cloudflare API Token: " cf_token
+        echo "CF_Token=$cf_token" > .env
     fi
+    docker compose -f compose.yml --env-file .env up --build -d
+else
+    docker compose -f compose.yml up --build -d
+fi
     
     cd ..
 }
