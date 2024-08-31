@@ -48,7 +48,7 @@ deploy_service() {
                 
                 # Copy ssl_params.conf if it doesn't exist
                 if [ ! -f /docker_data/nginx/ssl/ssl_params.conf ]; then
-                    sudo cp ssl_params.conf /docker_data/nginx/ssl/ssl_params.conf
+                    sudo cp ssl_params.conf /docker_data/nginx/ssl_params.conf
                 fi
 
                 # Create .env file if it doesn't exist
