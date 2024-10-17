@@ -37,6 +37,15 @@ deploy_service() {
         if [ -f "$service/compose.yml" ]; then
             # Copy compose file to the new location
             sudo cp "$service/compose.yml" "/var/docker/stacks/$service/compose.yml"
+            echo "Copied compose.yml to /var/docker/stacks/$service/"
+            
+            # Copy Dockerfile if it exists
+            if [ -f "$service/Dockerfile" ]; then
+                sudo cp "$service/Dockerfile" "/var/docker/stacks/$service/Dockerfile"
+                echo "Copied Dockerfile to /var/docker/stacks/$service/"
+            else
+                echo "Warning: Dockerfile not found in $service directory. Make sure it's not needed or update your compose.yml accordingly."
+            fi
             
             cd "/var/docker/stacks/$service"
             
@@ -50,7 +59,15 @@ deploy_service() {
             fi
             
             echo "Running docker compose for $service"
-            docker compose -f compose.yml up --build -d
+            if docker compose -f compose.yml up --build -d; then
+                echo "$service deployed successfully."
+            else
+                echo "Error deploying $service. Check the compose.yml and Dockerfile (if needed)."
+                echo "Contents of /var/docker/stacks/$service:"
+                ls -la
+                echo "Contents of compose.yml:"
+                cat compose.yml
+            fi
             cd "$OLDPWD"
         else
             echo "compose.yml not found in $service directory"
