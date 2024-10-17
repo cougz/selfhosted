@@ -46,6 +46,14 @@ deploy_service() {
             else
                 echo "Warning: Dockerfile not found in $service directory. Make sure it's not needed or update your compose.yml accordingly."
             fi
+
+            # Copy Dockerfile if it exists
+            if [ -f "$service/start.sh" ]; then
+                sudo cp "$service/start.sh" "/var/docker/stacks/$service/start.sh"
+                echo "Copied start.sh to /var/docker/stacks/$service/"
+            else
+                echo "Warning: start.sh not found in $service directory. Make sure it's not needed for your Dockerfile."
+            fi
             
             cd "/var/docker/stacks/$service"
             
