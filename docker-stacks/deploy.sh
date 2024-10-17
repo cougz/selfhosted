@@ -26,33 +26,34 @@ deploy_service() {
     # Create directories if they don't exist
     sudo mkdir -p /var/docker/data/$service
     sudo mkdir -p /var/docker/stacks/$service
+    sudo mkdir -p /var/docker/data/$service/ssl
     
     echo "Current directory: $(pwd)"
     ls -la
     
-    if [ -d "$service" ]; then
-        echo "Contents of $service directory:"
-        ls -la "$service"
+    if [ -d "docker-stacks/$service" ]; then
+        echo "Contents of docker-stacks/$service directory:"
+        ls -la "docker-stacks/$service"
         
-        if [ -f "$service/compose.yml" ]; then
+        if [ -f "docker-stacks/$service/compose.yml" ]; then
             # Copy compose file to the new location
-            sudo cp "$service/compose.yml" "/var/docker/stacks/$service/compose.yml"
+            sudo cp "docker-stacks/$service/compose.yml" "/var/docker/stacks/$service/compose.yml"
             echo "Copied compose.yml to /var/docker/stacks/$service/"
             
             # Copy Dockerfile if it exists
-            if [ -f "$service/Dockerfile" ]; then
-                sudo cp "$service/Dockerfile" "/var/docker/stacks/$service/Dockerfile"
+            if [ -f "docker-stacks/$service/Dockerfile" ]; then
+                sudo cp "docker-stacks/$service/Dockerfile" "/var/docker/stacks/$service/Dockerfile"
                 echo "Copied Dockerfile to /var/docker/stacks/$service/"
             else
-                echo "Warning: Dockerfile not found in $service directory. Make sure it's not needed or update your compose.yml accordingly."
+                echo "Warning: Dockerfile not found in docker-stacks/$service directory."
             fi
-
-            # Copy Dockerfile if it exists
-            if [ -f "$service/start.sh" ]; then
-                sudo cp "$service/start.sh" "/var/docker/stacks/$service/start.sh"
+            
+            # Copy start.sh if it exists
+            if [ -f "docker-stacks/$service/start.sh" ]; then
+                sudo cp "docker-stacks/$service/start.sh" "/var/docker/stacks/$service/start.sh"
                 echo "Copied start.sh to /var/docker/stacks/$service/"
             else
-                echo "Warning: start.sh not found in $service directory. Make sure it's not needed for your Dockerfile."
+                echo "Warning: start.sh not found in docker-stacks/$service directory."
             fi
             
             cd "/var/docker/stacks/$service"
@@ -78,23 +79,22 @@ deploy_service() {
             fi
             cd "$OLDPWD"
         else
-            echo "compose.yml not found in $service directory"
+            echo "compose.yml not found in docker-stacks/$service directory"
         fi
     else
-        echo "Service directory $service not found"
+        echo "Service directory docker-stacks/$service not found"
     fi
 }
 
 configure_nginx() {
     # Copy nginx.conf if it doesn't exist
     if [ ! -f /var/docker/data/nginx/nginx.conf ]; then
-        sudo cp "$OLDPWD/nginx/nginx.conf" /var/docker/data/nginx/nginx.conf
+        sudo cp "docker-stacks/nginx/nginx.conf" /var/docker/data/nginx/nginx.conf
     fi
     
-    # Copy ssl_params.conf if it doesn't exist
-    if [ ! -f /var/docker/data/nginx/ssl_params.conf ]; then
-        sudo cp "$OLDPWD/nginx/ssl_params.conf" /var/docker/data/nginx/ssl_params.conf
-    fi
+    # Copy ssl_params.conf to the ssl folder
+    sudo cp "docker-stacks/nginx/ssl_params.conf" /var/docker/data/nginx/ssl/ssl_params.conf
+    echo "Copied ssl_params.conf to /var/docker/data/nginx/ssl/"
 
     # Create .env file if it doesn't exist
     if [ ! -f .env ]; then
@@ -127,11 +127,12 @@ ls -la
 
 if [ $# -eq 0 ]; then
     echo "No service specified, deploying all"
-    for dir in */; do
-        if [ -f "${dir}compose.yml" ]; then
-            deploy_service "${dir%/}"
+    for dir in docker-stacks/*/; do
+        service=$(basename "$dir")
+        if [ -f "docker-stacks/$service/compose.yml" ]; then
+            deploy_service "$service"
         else
-            echo "No compose.yml in ${dir}"
+            echo "No compose.yml in docker-stacks/$service"
         fi
     done
 else
